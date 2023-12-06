@@ -64,10 +64,14 @@ async function sprintChallenge5() { // Note the async keyword, in case you wish 
             console.log(evt.target)
            
             document.querySelector('.info').textContent = `The selected learner is ${learner.fullName}`
-            
+           
+            const cards = document.querySelectorAll('.card')
+              cards.forEach((element) => {
+              element.classList.remove('selected')
+      
+            })
+
             card.classList.add('selected')
-              
-            
             
             if(evt.target === mentorHeading){
               if(mentorHeading.classList.contains('closed')){
