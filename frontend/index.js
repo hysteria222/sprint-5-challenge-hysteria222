@@ -61,9 +61,15 @@ async function sprintChallenge5() { // Note the async keyword, in case you wish 
           document.querySelector('.info').textContent = 'No learner is selected'
 
           card.addEventListener('click', () => {
-            name.textContent = learner.fullName + ', ' + 'ID' + ' ' + learner.id;
+            name.innerHTML = `${learner.fullName}, ID ${learner.id}`;
             document.querySelector('.info').textContent = `The selected learner is ${learner.fullName}`
-            card.classList.toggle('selected')
+           
+              const cards = document.querySelectorAll('.card')
+              cards.forEach((element) => {
+                element.classList.remove('selected')
+              })
+              card.classList.add('selected')
+           
             
           })
           
