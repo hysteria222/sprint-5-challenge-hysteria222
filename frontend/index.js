@@ -53,46 +53,34 @@ async function sprintChallenge5() { // Note the async keyword, in case you wish 
           learner.mentors.forEach((element, i) => {
           const mentorsListItem = document.createElement('li')
           mentorsListItem.textContent = learner.mentors[i]
-          mentorList.appendChild(mentorsListItem)
-        })
+          mentorList.appendChild(mentorsListItem)})
+
           mentorList.style.display = 'none'
 
-         
+
           document.querySelector('.info').textContent = 'No learner is selected'
 
           card.addEventListener('click', evt => {
             console.log(evt.target)
-           
+
             document.querySelector('.info').textContent = `The selected learner is ${learner.fullName}`
-           
-            const cards = document.querySelectorAll('.card')
+
+            if(card.classList.contains('selected')){
+              card.classList.remove('selected')
+              document.querySelector('.info').textContent = 'No learner is selected'
+            } else {
+              const cards = document.querySelectorAll('.card')
               cards.forEach((element) => {
-              element.classList.remove('selected')
-      
-            })
-
-            card.classList.add('selected')
-            
-            if(evt.target === mentorHeading){
-              if(mentorHeading.classList.contains('closed')){
-              mentorList.style.display = 'block'
-              mentorHeading.classList.remove('closed')
-              mentorHeading.classList.add('open')
-              } else if (mentorHeading.classList.contains('open')){
-                mentorList.style.display = 'none'
-                mentorHeading.classList.remove('open')
-                mentorHeading.classList.add('closed')
-                }
+              element.classList.remove('selected')})
+              card.classList.add('selected')
             }
-
+            
           })
           
           return card
       }
 
-      
-
-      fullArray.forEach(cardMaker)
+      fullArray.forEach(cardMaker);
 
   } catch (err) {
     console.log(err.message)

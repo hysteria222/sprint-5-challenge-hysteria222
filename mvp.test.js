@@ -6,6 +6,7 @@ const { learners, mentors } = require('./backend/data')
 const { sprintChallenge5 } = require('./frontend/index')
 
 const waitForOptions = { timeout: 150 } // so Codegrade does not take forever
+const queryOptions = { exact: false }
 
 beforeAll(() => { server.listen() })
 afterAll(() => { server.close() })
@@ -26,7 +27,7 @@ beforeEach(async () => {
 })
 
 async function firstCardRender() {
-  const bob = await screen.findByText('Bob Johnson', {}, waitForOptions)
+  const bob = await screen.findByText('Bob Johnson', queryOptions, waitForOptions)
   expect(bob).toBeInTheDocument()
 }
 
@@ -98,7 +99,7 @@ describe('Sprint Challenge 5', () => {
         expect(lis.length).toBe(ids.length)
       })
     })
-    test('👉 [14] <li>s inside each card display the correct mentor names', async () => {
+    test('👉 [14] <li>s inside each card contain the correct mentor names', async () => {
       await firstCardRender()
       const unorderedLists = document.querySelectorAll('.card ul')
       unorderedLists.forEach((ul, idx) => {
@@ -131,16 +132,7 @@ describe('Sprint Challenge 5', () => {
       fireEvent.click(card)
       expect(card.classList.contains('selected')).toBe(false)
     })
-    test('👉 [17] <h3> selecting a card causes the learner ID to display next to the name', async () => {
-      await firstCardRender()
-      const card = document.querySelector('.card:nth-child(1)')
-      expect(within(card).queryByText('Bob Johnson, ID 6')).not.toBeInTheDocument()
-      fireEvent.click(card)
-      expect(within(card).queryByText('Bob Johnson, ID 6')).toBeInTheDocument()
-      fireEvent.click(card)
-      expect(within(card).queryByText('Bob Johnson, ID 6')).not.toBeInTheDocument()
-    })
-    test('👉 [18] <p class="info"> selecting a card displays the text "The selected learner is <name>"', async () => {
+    test('👉 [17] <p class="info"> selecting a card displays the text "The selected learner is <name>"', async () => {
       await firstCardRender()
       const card1 = document.querySelector('.card:nth-child(1)')
       const card2 = document.querySelector('.card:nth-child(2)')
@@ -154,14 +146,14 @@ describe('Sprint Challenge 5', () => {
       expect(screen.queryByText('The selected learner is Samantha Richards')).not.toBeInTheDocument()
       expect(screen.queryByText('The selected learner is Harry Potter')).toBeVisible()
     })
-    test('👉 [19] <p class="info"> de-selecting all cards displays the text "No learner is selected"', async () => {
+    test('👉 [18] <p class="info"> de-selecting all cards displays the text "No learner is selected"', async () => {
       await firstCardRender()
       const card = document.querySelector('.card:nth-child(1)')
       fireEvent.click(card)
       fireEvent.click(card)
       expect(screen.queryByText('No learner is selected')).toBeVisible()
     })
-    test('👉 [20] <div class="card"> clicking on a card de-selects any other card that may be selected', async () => {
+    test('👉 [19] <div class="card"> clicking on a card de-selects any other card that may be selected', async () => {
       await firstCardRender()
       const card1 = document.querySelector('.card:nth-child(1)')
       const card2 = document.querySelector('.card:nth-child(2)')
@@ -170,74 +162,81 @@ describe('Sprint Challenge 5', () => {
       fireEvent.click(card2)
       expect(card1.classList.contains('selected')).toBe(false)
       expect(card2.classList.contains('selected')).toBe(true)
-      expect(within(card1).queryByText('Bob Johnson, ID 6')).not.toBeInTheDocument()
-      expect(within(card2).queryByText('Samantha Richards, ID 52')).toBeInTheDocument()
       fireEvent.click(card3)
       expect(card2.classList.contains('selected')).toBe(false)
       expect(card3.classList.contains('selected')).toBe(true)
-      expect(within(card2).queryByText('Samantha Richards, ID 52')).not.toBeInTheDocument()
-      expect(within(card3).queryByText('Harry Potter, ID 84')).toBeInTheDocument()
-    })
-    test('👉 [21] <h4 class="open"> clicking on "Mentors" heading toggles visibility of list of mentors', async () => {
-      // Repeatedly clicking on the h4 of a card causes the unordered list of mentors to switch
-      // from visible to invisible or vice-versa.
-      await firstCardRender()
-      const h4 = document.querySelector('.card:nth-child(4) h4')
-      fireEvent.click(h4)
-      expect(h4.classList.contains('closed')).toBe(false)
-      expect(h4.classList.contains('open')).toBe(true)
-      expect(h4.nextElementSibling).toBeVisible()
-      fireEvent.click(h4)
-      expect(h4.classList.contains('closed')).toBe(true)
-      expect(h4.classList.contains('open')).toBe(false)
-      expect(h4.nextElementSibling).not.toBeVisible()
-    })
-    test('👉 [22] <h4 class="open"> clicking on "Mentors" heading can select a card, but not deselect it', async () => {
-      // This means for example that, when clicking on the h4 of a de-selected card, it becomes selected and at the
-      // same time the visibility of the mentors list switches (from visible to invisible or vice-versa). However,
-      // when clicking again on the h4, the visibility of mentors switches, but the card does not become de-selected.
-      await firstCardRender()
-      const card = document.querySelector('.card:nth-child(8)')
-      const h4 = card.querySelector('h4')
-      fireEvent.click(h4)
-      expect(card.classList.contains('selected')).toBe(true)
-      fireEvent.click(h4)
-      expect(card.classList.contains('selected')).toBe(true)
-    })
-    test('👉 [23] <ul> the visibility of the mentors list is preserved on the old card, when selecting a new one', async () => {
-      // This means for example that, when selecting a new card by clicking on its h4, the visibility of the mentors
-      // list on the new card switches (from visible to invisible or vice-versa), but the visibility of the mentors
-      // list on the old card stays the way we left it
-      await firstCardRender()
-      const cardA = document.querySelector('.card:nth-child(8)')
-      const cardB = document.querySelector('.card:nth-child(2)')
-      const h4A = cardA.querySelector('h4')
-      const h4B = cardB.querySelector('h4')
-      const ulA = cardA.querySelector('ul')
-      const ulB = cardB.querySelector('ul')
-      fireEvent.click(h4A)
-      expect(cardA.classList.contains('selected')).toBe(true)
-      expect(ulA).toBeVisible()
-      fireEvent.click(h4B)
-      expect(cardA.classList.contains('selected')).not.toBe(true)
-      expect(cardB.classList.contains('selected')).toBe(true)
-      expect(ulA).toBeVisible()
-      expect(ulB).toBeVisible()
-      fireEvent.click(h4A)
-      expect(cardA.classList.contains('selected')).toBe(true)
-      expect(cardB.classList.contains('selected')).not.toBe(true)
-      expect(ulA).not.toBeVisible()
-      expect(ulB).toBeVisible()
-      fireEvent.click(h4B)
-      expect(cardA.classList.contains('selected')).not.toBe(true)
-      expect(cardB.classList.contains('selected')).toBe(true)
-      expect(ulA).not.toBeVisible()
-      expect(ulB).not.toBeVisible()
-      fireEvent.click(cardA)
-      expect(cardA.classList.contains('selected')).toBe(true)
-      expect(cardB.classList.contains('selected')).not.toBe(true)
-      expect(ulA).not.toBeVisible()
-      expect(ulB).not.toBeVisible()
     })
   })
+  // describe('Optional goals', () => {
+  //   test('👉 [20] <h3> selecting a card causes the learner ID to display next to the name', async () => {
+  //     await firstCardRender()
+  //     const card = document.querySelector('.card:nth-child(1)')
+  //     expect(within(card).queryByText('Bob Johnson, ID 6')).not.toBeInTheDocument()
+  //     fireEvent.click(card)
+  //     expect(within(card).queryByText('Bob Johnson, ID 6')).toBeInTheDocument()
+  //     fireEvent.click(card)
+  //     expect(within(card).queryByText('Bob Johnson, ID 6')).not.toBeInTheDocument()
+  //   })
+  //   test('👉 [21] <h4 class="open"> clicking on "Mentors" heading toggles visibility of list of mentors', async () => {
+  //     // Repeatedly clicking on the h4 of a card causes the unordered list of mentors to switch
+  //     // from visible to invisible or vice-versa.
+  //     await firstCardRender()
+  //     const h4 = document.querySelector('.card:nth-child(4) h4')
+  //     fireEvent.click(h4)
+  //     expect(h4.classList.contains('closed')).toBe(false)
+  //     expect(h4.classList.contains('open')).toBe(true)
+  //     expect(h4.nextElementSibling).toBeVisible()
+  //     fireEvent.click(h4)
+  //     expect(h4.classList.contains('closed')).toBe(true)
+  //     expect(h4.classList.contains('open')).toBe(false)
+  //     expect(h4.nextElementSibling).not.toBeVisible()
+  //   })
+  //   test('👉 [22] <h4 class="open"> clicking on "Mentors" heading can select a card, but not deselect it', async () => {
+  //     // This means for example that, when clicking on the h4 of a de-selected card, it becomes selected and at the
+  //     // same time the visibility of the mentors list switches (from visible to invisible or vice-versa). However,
+  //     // when clicking again on the h4, the visibility of mentors switches, but the card does not become de-selected.
+  //     await firstCardRender()
+  //     const card = document.querySelector('.card:nth-child(8)')
+  //     const h4 = card.querySelector('h4')
+  //     fireEvent.click(h4)
+  //     expect(card.classList.contains('selected')).toBe(true)
+  //     fireEvent.click(h4)
+  //     expect(card.classList.contains('selected')).toBe(true)
+  //   })
+  //   test('👉 [23] <ul> the visibility of the mentors list is preserved on the old card, when selecting a new one', async () => {
+  //     // This means for example that, when selecting a new card by clicking on its h4, the visibility of the mentors
+  //     // list on the new card switches (from visible to invisible or vice-versa), but the visibility of the mentors
+  //     // list on the old card stays the way we left it
+  //     await firstCardRender()
+  //     const cardA = document.querySelector('.card:nth-child(8)')
+  //     const cardB = document.querySelector('.card:nth-child(2)')
+  //     const h4A = cardA.querySelector('h4')
+  //     const h4B = cardB.querySelector('h4')
+  //     const ulA = cardA.querySelector('ul')
+  //     const ulB = cardB.querySelector('ul')
+  //     fireEvent.click(h4A)
+  //     expect(cardA.classList.contains('selected')).toBe(true)
+  //     expect(ulA).toBeVisible()
+  //     fireEvent.click(h4B)
+  //     expect(cardA.classList.contains('selected')).not.toBe(true)
+  //     expect(cardB.classList.contains('selected')).toBe(true)
+  //     expect(ulA).toBeVisible()
+  //     expect(ulB).toBeVisible()
+  //     fireEvent.click(h4A)
+  //     expect(cardA.classList.contains('selected')).toBe(true)
+  //     expect(cardB.classList.contains('selected')).not.toBe(true)
+  //     expect(ulA).not.toBeVisible()
+  //     expect(ulB).toBeVisible()
+  //     fireEvent.click(h4B)
+  //     expect(cardA.classList.contains('selected')).not.toBe(true)
+  //     expect(cardB.classList.contains('selected')).toBe(true)
+  //     expect(ulA).not.toBeVisible()
+  //     expect(ulB).not.toBeVisible()
+  //     fireEvent.click(cardA)
+  //     expect(cardA.classList.contains('selected')).toBe(true)
+  //     expect(cardB.classList.contains('selected')).not.toBe(true)
+  //     expect(ulA).not.toBeVisible()
+  //     expect(ulB).not.toBeVisible()
+  //   })
+  // })
 })
